@@ -12,7 +12,7 @@ ONEDRIVE_FOLDER="Scans"    # destination folder on OneDrive
 # ── 1. Packages ────────────────────────────────────────────────────────────────
 echo "[1/6] Installing packages..."
 apt-get update -qq
-apt-get install -y -qq vsftpd python3 python3-pip python3-venv curl
+apt-get install -y -qq vsftpd python3 python3-pip python3-venv curl unzip
 
 # ── 2. rclone ──────────────────────────────────────────────────────────────────
 if ! command -v rclone &>/dev/null; then
