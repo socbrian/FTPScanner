@@ -1,0 +1,15 @@
+[Unit]
+Description=FTP Scanner Web UI
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/ftpscanner
+ExecStart=/opt/ftpscanner/venv/bin/python server.py
+Restart=always
+RestartSec=5
+Environment=SCANS_DIR=/srv/scans
+
+[Install]
+WantedBy=multi-user.target

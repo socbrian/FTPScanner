@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scanner Files</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 1.2rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 { font-size: 1.3rem; font-weight: 600; letter-spacing: 0.02em; }
+    header span { font-size: 0.85rem; opacity: 0.6; }
+
+    .container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+
+    .latest-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .latest-card .label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #888;
+      margin-bottom: 0.3rem;
+    }
+
+    .latest-card .filename {
+      font-size: 1rem;
+      font-weight: 600;
+      word-break: break-all;
+    }
+
+    .btn-download {
+      display: inline-block;
+      padding: 0.7rem 1.6rem;
+      background: #2563eb;
+      color: #fff;
+      border-radius: 7px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .btn-download:hover { background: #1d4ed8; }
+
+    .empty-state {
+      background: #fff;
+      border-radius: 10px;
+      padding: 3rem 2rem;
+      text-align: center;
+      color: #888;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .file-list {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    .file-list-header {
+      display: grid;
+      grid-template-columns: 1fr 7rem 10rem auto;
+      gap: 1rem;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #888;
+      border-bottom: 1px solid #eee;
+    }
+
+    .file-row {
+      display: grid;
+      grid-template-columns: 1fr 7rem 10rem auto;
+      gap: 1rem;
+      padding: 0.85rem 1.5rem;
+      align-items: center;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background 0.1s;
+    }
+    .file-row:last-child { border-bottom: none; }
+    .file-row:hover { background: #f7f9ff; }
+
+    .file-row .name {
+      font-size: 0.92rem;
+      word-break: break-all;
+    }
+    .file-row .size { font-size: 0.88rem; color: #666; }
+    .file-row .date { font-size: 0.82rem; color: #888; }
+
+    .btn-small {
+      display: inline-block;
+      padding: 0.35rem 0.9rem;
+      background: #e8f0fe;
+      color: #2563eb;
+      border-radius: 5px;
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .btn-small:hover { background: #dbeafe; }
+
+    @media (max-width: 600px) {
+      .file-list-header, .file-row {
+        grid-template-columns: 1fr auto;
+      }
+      .file-list-header .col-size,
+      .file-list-header .col-date,
+      .file-row .size,
+      .file-row .date { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Scanner Files</h1>
+  <span>{{ files|length }} file{% if files|length != 1 %}s{% endif %}</span>
+</header>
+
+<div class="container">
+
+  {% if latest %}
+  <div class="latest-card">
+    <div>
+      <div class="label">Latest scan</div>
+      <div class="filename">{{ latest }}</div>
+    </div>
+    <a class="btn-download" href="/download/{{ latest }}">&#8595; Download Latest</a>
+  </div>
+  {% endif %}
+
+  {% if files %}
+  <div class="file-list">
+    <div class="file-list-header">
+      <span>Filename</span>
+      <span class="col-size">Size</span>
+      <span class="col-date">Modified</span>
+      <span></span>
+    </div>
+    {% for f in files %}
+    <div class="file-row">
+      <span class="name">{{ f.name }}</span>
+      <span class="size">{{ f.size }}</span>
+      <span class="date">{{ f.modified.strftime('%Y-%m-%d %H:%M') }}</span>
+      <a class="btn-small" href="/download/{{ f.name }}">Download</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <p>No scans yet. Files uploaded via FTP will appear here.</p>
+  </div>
+  {% endif %}
+
+</div>
+</body>
+</html>

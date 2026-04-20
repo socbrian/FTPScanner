@@ -1,0 +1,13 @@
+[Unit]
+Description=Sync scans to OneDrive (oneshot)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Remote name must be "onedrive" and configured via: rclone config
+# Destination folder on OneDrive can be changed here
+ExecStart=/usr/bin/rclone copy /srv/scans onedrive:Scans \
+    --transfers=4 \
+    --log-level=INFO \
+    --log-file=/var/log/ftpscanner-sync.log
