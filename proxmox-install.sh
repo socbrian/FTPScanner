@@ -9,8 +9,6 @@ HOSTNAME="${HOSTNAME:-ftpscanner}"
 MEMORY="${MEMORY:-512}"                    # MB
 CORES="${CORES:-1}"
 DISK="${DISK:-8}"                          # GB
-STORAGE="${STORAGE:-local-lvm}"            # Proxmox storage for rootfs
-TEMPLATE_STORAGE="${TEMPLATE_STORAGE:-local}"
 BRIDGE="${BRIDGE:-vmbr0}"
 IP="${IP:-dhcp}"                           # e.g. 192.168.1.50/24
 GATEWAY="${GATEWAY:-}"                     # required if IP is static
@@ -29,6 +27,53 @@ error()   { echo -e "${RED}[✗]${NC} $*"; exit 1; }
 
 # Must run on Proxmox host
 command -v pct &>/dev/null || error "pct not found — run this on the Proxmox host."
+
+# ── 0. Pick storage ────────────────────────────────────────────────────────────
+pick_storage() {
+  local label="$1" var="$2" filter="$3"
+  local -a options
+
+  # Collect matching storage names from pvesm
+  while IFS= read -r line; do
+    local name type
+    name=$(echo "$line" | awk '{print $1}')
+    type=$(echo "$line" | awk '{print $2}')
+    # filter: "content" checks what's in the Content column via pvesm status
+    if [[ -z "$filter" ]] || pvesm status --storage "$name" 2>/dev/null | grep -q "$filter"; then
+      options+=("$name ($type)")
+    fi
+  done < <(pvesm status 2>/dev/null | tail -n +2)
+
+  [[ ${#options[@]} -eq 0 ]] && error "No suitable storage found for $label."
+
+  echo ""
+  echo -e "${YELLOW}Select storage for ${label}:${NC}"
+  for i in "${!options[@]}"; do
+    printf "  [%d] %s\n" "$((i+1))" "${options[$i]}"
+  done
+
+  local choice
+  while true; do
+    read -rp "  Choice [1-${#options[@]}]: " choice
+    if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#options[@]} )); then
+      # Extract just the storage name (before the space)
+      printf -v "$var" '%s' "$(echo "${options[$((choice-1))]}" | awk '{print $1}')"
+      break
+    fi
+    echo "  Invalid choice, try again."
+  done
+}
+
+# Only prompt if not already set via env vars
+if [[ -z "${STORAGE:-}" ]]; then
+  pick_storage "container rootfs" STORAGE
+fi
+if [[ -z "${TEMPLATE_STORAGE:-}" ]]; then
+  pick_storage "CT templates" TEMPLATE_STORAGE
+fi
+
+info "Rootfs storage : $STORAGE"
+info "Template storage: $TEMPLATE_STORAGE"
 
 # ── 1. Download Debian 12 template if needed ───────────────────────────────────
 info "Checking for Debian 12 template..."
