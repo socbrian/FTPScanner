@@ -26,6 +26,8 @@ fi
 echo "[3/6] Creating FTP user and scans directory..."
 useradd -m -s /usr/sbin/nologin "$FTP_USER" 2>/dev/null || true
 echo "$FTP_USER:$FTP_PASS" | chpasswd
+# vsftpd PAM checks /etc/shells — nologin must be listed or logins are rejected
+grep -qxF '/usr/sbin/nologin' /etc/shells || echo '/usr/sbin/nologin' >> /etc/shells
 
 mkdir -p "$SCANS_DIR"
 chown "$FTP_USER":"$FTP_USER" "$SCANS_DIR"
